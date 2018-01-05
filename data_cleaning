@@ -1,0 +1,108 @@
+import pandas as pd
+import pylab as pl
+import numpy as np
+import re
+#import libraries
+
+np.sum
+#shows teh data type
+
+df = pd.read_csv("https://s3.amazonaws.com/rodeo-tutorials/data/credit-training.csv")
+#import a data set
+
+df.head()
+#look at the top of the data frame
+
+print(df.SeriousDlqin2yrs.head())
+#look at only the top or head of SeriousDlqin2yrs
+
+df.dtypes
+#look at the data types
+
+df.DebtRatio
+#look at only one column
+
+df.describe()
+#get descibtion stats
+
+df.NumberOfDependents.unique()
+#Shows the unique vales in number of dependents column
+
+df.NumberOfDependents.value_counts()
+#counts the unique values
+
+pd.value_counts(df.NumberOfDependents).head(3)
+#show only the top three
+
+%matplotlib inline
+pd.value_counts(df.NumberOfDependents).plot(kind='bar')
+#create a bar graph of the count of number of depentdents
+
+pd.crosstab(df.NumberOfTimes90DaysLate, df.SeriousDlqin2yrs)
+#create a cross tab for the number of times late and if they are dlqin
+
+pd.crosstab(df.age, df.NumberOfDependents)
+#cross tab age and number of dependents
+
+df['one'] = 1
+df.one.head()
+#make a column and show it
+
+del df['one']
+#del a column
+
+def camel_to_snake(column_name):
+    """
+    converts a string that is camelCase into snake_case
+    Example:
+        print camel_to_snake("javaLovesCamelCase")
+        > java_loves_camel_case
+    See Also:
+        http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case
+    """
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', column_name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+    
+df.columns = [camel_to_snake(col) for col in df.columns]
+df.columns.tolist()
+#change and commit column names from camel case to snake case
+    
+df[df.monthly_income > 5000].head()
+#look at the head of the data where montly income is greater than 5000
+
+df.ix[40:45, 0:2]
+#look at the index 40 to 45 and column 1 and 2
+
+mask = (df.monthly_income > 5000) & (df.serious_dlqin2yrs==1)
+df[mask].head()
+#mask or get rows where montly income > 5000 and dlqin as 1 or yes
+
+df_lng = pd.melt(df)
+#melt the data into one varible
+
+df_lng.head()
+#this melts into dlqin2yrs
+
+null_variables = df_lng.value.isnull
+#finds all null or nan entries
+null_variables.sum()
+#shows the amount of nan or null entries
+
+pd.crosstab(df_lng.variable, null_variables)
+#cross tab showing where the nan or null varibles are
+
+s = pd.Series([1, 2, None, 4])
+#create a new pd series with a nan
+
+s.fillna(3)
+#fill the nan's with 3
+s.ffill()
+#fill the nan with the entry above in the column
+s.bfill()
+#fill the nan with the entry below in the column
+s.fillna(s.mean())
+#fill the nan with the mean of the column
+
+df.number_of_dependents = df.number_of_dependents.fillna(0)
+#fill the nan of number of dependents as 0
+

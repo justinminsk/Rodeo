@@ -1,0 +1,94 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+#import libraries
+
+train = pd.read_csv("https://rodeo-tutorials.s3.amazonaws.com/data/credit-data-trainingset.csv")
+test = pd.read_csv("https://rodeo-tutorials.s3.amazonaws.com/data/credit-data-testset.csv")
+test.head()
+#get the training data and the test data and look at tests head
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.svm import SVC
+#get the sklearn machine learning tools we will use for this data
+
+features = ['revolving_utilization_of_unsecured_lines', 'debt_ratio',
+            'monthly_income', 'age', 'number_of_times90_days_late']
+#create a list of the features we will use to predict
+clf = KNeighborsClassifier(n_neighbors=13)
+# set up a knn classifier where we classify by 13 neighbors
+clf.fit(train[features], train.serious_dlqin2yrs)
+#train the data with the train data set
+
+clf.predict(test[features])
+#gives an array with what it predicts is the outcome
+
+clf.predict_proba(test[features])
+#gives the probabilty that teh out come will be 1
+
+probs = clf.predict_proba(test[features])
+# assign the probabilty that the outcome will be 1 to a varible
+prob_true = probs[::,1]
+#create a list from 0 to 1 inculsivly
+plt.hist(prob_true)
+#plot a histogram of the probabilties
+
+from sklearn.metrics import roc_curve, auc, classification_report, confusion_matrix
+#import sklearn eval tools for the models
+
+preds = clf.predict_proba(test[features])
+#test the knn on the test data
+
+confusion_matrix(test['serious_dlqin2yrs'], clf.predict(test[features]))
+# creates a confusion matrix that shows type 1 (false postive) and type 2 (false negtive) errors in
+# the model
+
+pd.crosstab(test['serious_dlqin2yrs'], clf.predict(test[features]), rownames=["Actual"], colnames=["Predicted"])
+#instead of sklearn's confusion matrix use pd's cross tabs to better label the matrix
+
+print(classification_report(test['serious_dlqin2yrs'], clf.predict(test[features]), labels=[0, 1]))
+#gives a more detailed report on the model
+
+def plot_roc(name, probs):
+    fpr, tpr, thresholds = roc_curve(test['serious_dlqin2yrs'], probs)
+    roc_auc = auc(fpr, tpr)
+    plt.clf()
+    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlim([0.0, 1.05])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(name)
+    plt.legend(loc="lower right")
+    plt.show()
+#a def to create a roc curve or a graph to viulize how well the model is doing
+plot_roc("Perfect Classifier", test['serious_dlqin2yrs'])
+#shows a perfect model
+plot_roc("Guessing", np.random.uniform(0, 1, len(test['serious_dlqin2yrs'])))
+#this is a roc curve with a np random 0 or 1 as the model
+#[::,1] selects the 2nd column of the numpy array
+plot_roc("KNN", preds[::,1])
+#this is the knn roc curve
+
+clf = RandomForestClassifier()
+#create a random forest modeler
+clf.fit(train[features], train.serious_dlqin2yrs)
+#create the random forest model
+
+probs = clf.predict_proba(test[features])[::,1]
+#get the probablity of 1 or 0 from random forest
+plot_roc("RandomForest", probs)
+#get the roc curve for random forest
+
+features = ['revolving_utilization_of_unsecured_lines', 'debt_ratio',
+            'number_of_times90_days_late', 'number_real_estate_loans_or_lines']
+clf = GradientBoostingClassifier()
+clf.fit(train[features], train.serious_dlqin2yrs)
+probs = clf.predict_proba(test[features])[::,1]
+plot_roc("GBC", probs)
+#here is GBC (not sure what gradient boosting classifier is) roc curve
+
