@@ -1,0 +1,29 @@
+import numpy as np
+
+import matplotlib.pyplot as plt
+
+import pandas as pd
+
+t = np.arange(0.0, 2.0, 0.01)
+
+s = np.sin(2 * np.pi * t)
+
+lower = 0
+
+
+supper = np.ma.masked_where(s > lower, s)
+
+slower = np.ma.masked_where(s < lower, s)
+
+cmap = colors.ListedColormap(['green'])
+
+cmap.set_bad(color='red') 
+
+fig, ax = plt.subplots()
+
+ax.plot(t, slower, color='green')
+
+ax.plot(t, supper, color='red')
+
+plt.show()
+
